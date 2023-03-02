@@ -1,17 +1,11 @@
 const booking = require("../model/booking")
 const fakeBooking = require("../model/fakeBooking")
-const nodemailer = require("nodemailer")
+const mailTransporter = require("../util/sendingEmail")
+const midtrans = require('../util/midtrans')
 
 const createFakeBooking = async (req, res, next) => {
     try {
         const saveBooking = await new fakeBooking(req.body).save()
-        let mailTransporter = nodemailer.createTransport({
-            service: "gmail",
-            auth: {
-                user: "andalausia46@gmail.com",
-                pass: "ztguijpuqizzenrq",
-            },
-        });
         let mailDetails = {
             from: "bagastester46@gmail.com",
             to: req.body.email,
@@ -126,35 +120,116 @@ const createFakeBooking = async (req, res, next) => {
 }
 const updatedetailBooking = async (req, res, next) => {
     try {
-        const updateData = {
-            name: req.body.name,
-            email: req.body.email,
-            phone: req.body.phone,
-            address: req.body.address,
-            items: {
-                year: req.body.items.year,
-                month: req.body.items.month,
-                date: req.body.items.date
-            },
-            information: req.body.information,
-
-        }
-        await fakeBooking.findByIdAndUpdate(req.params.id,
+        const update = await fakeBooking.findOneAndUpdate({ "_id": req.params.id },
             {
                 $set: {
-                    updateData
+                    name: req.body.name,
+                    email: req.body.email,
+                    phone: req.body.phone,
+                    address: req.body.address,
+                    items: [{
+                        year: req.body.items.year,
+                        month: req.body.items.month,
+                        date: req.body.items.date
+                    }],
+                    information: req.body.information,
                 }
-            })
+            }, { new: true })
+        console.log(update._id.toString())
         res.status(200).json({
             message: "Success Update",
+            data: update
         })
     } catch (err) {
         next(err)
     }
 }
 const confirmationFakeBooking = async (req, res, next) => {
-    try {
 
+    try {
+        let newbodyReqMidtrans
+        const findFakeTransaction = await fakeBooking.findOne({ "_id": req.params.id })
+        const newId = findFakeTransaction._id.toString()
+        const quantity = findFakeTransaction
+        let bodyReqMidtrans = {
+            "transaction_details": {
+                "gross_amount": 21000,
+                "order_id": newId
+            },
+            "customer_details": {
+                "email": findFakeTransaction.email,
+                "first_name": findFakeTransaction.name,
+                "phone": findFakeTransaction.phone
+            },
+            "item_details": [
+                {
+                    "price": 21000,
+                    "quantity": 1,
+                    "name": "booking gedung",
+                    "items": findFakeTransaction.items
+                }
+            ],
+        }
+
+        switch (req.body.payment_type) {
+            case "bank_transfer":
+                newbodyReqMidtrans = {
+                    "payment_type": "bank_transfer",
+                    ...bodyReqMidtrans,
+                    "bank_transfer": {
+                        "bank": req.body.bank_name,
+                        "va_number": "12345678901"
+                    }
+                }
+                break;
+            case "gopay":
+                newbodyReqMidtrans = {
+                    "payment_type": "gopay",
+                    ...bodyReqMidtrans,
+                    "gopay": {
+                        "enable_callback": true,
+                        "callback_url": "someapps://callback"
+                    },
+                }
+                break;
+            default:
+            // code block
+        }
+        try {
+            const test = await midtrans.charge(newbodyReqMidtrans)
+            console.log(test)
+            if (test) {
+                try {
+                    const update = await fakeBooking.findOneAndUpdate({ "_id": req.params.id },
+                        {
+                            $set: {
+                                status: test.transaction_status,
+                                payment: test
+                            }
+                        }, { new: true })
+                    return res.status(200).json({
+                        message: "Success Update",
+                        data: update
+                    })
+                } catch (err) {
+                    next(err)
+                }
+            }
+        } catch (err) {
+            next(new Error('Something Wrong with Midtrans'))
+        }
+    } catch (err) {
+        next(new Error('cant find booking id'))
+    }
+
+}
+const cancelFakeBooking = async (req, res, next) => {
+    try {
+        const update = await fakeBooking.findByIdAndDelete({ "_id": req.params.id },
+            { new: true })
+        res.status(200).json({
+            message: "Success Update",
+        })
     } catch (err) {
         next(err)
     }
@@ -238,7 +313,6 @@ const createBooking = async (req, res, next) => {
         next(err)
     }
 }
-
 const getDateBooking = async (req, res, next) => {
     const getYear = req.query.year
     const getMonth = req.query.month
@@ -266,4 +340,14 @@ const getDateBooking = async (req, res, next) => {
         next(err)
     }
 }
-module.exports = { createBooking, getDateBooking, createFakeBooking,updatedetailBooking }
+const testing = async (req, res, next) => {
+    try {
+        const res = await axios.post("http://masjidandalusia.com/ajax/get_selected_building_schedule");
+        console.log(res.data.items)
+    }
+    catch (err) {
+        next(err)
+    }
+
+}
+module.exports = { createBooking, getDateBooking, createFakeBooking, updatedetailBooking, confirmationFakeBooking, cancelFakeBooking, testing }

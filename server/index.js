@@ -4,6 +4,8 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 
 const bookingRouter = require('./routes/booking')
+const galeriRouter = require('./routes/galeri')
+const beritaRouter = require('./routes/beritaArtikel')
 const PORT = process.env.PORT || 3000
 const cors = require("cors");
 
@@ -30,6 +32,8 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.use("/booking", bookingRouter)
+app.use("/galeri", galeriRouter)
+app.use("/berita", beritaRouter)
 
 mongoose.set("strictQuery", false);
 

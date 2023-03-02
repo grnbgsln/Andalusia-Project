@@ -1,0 +1,22 @@
+{
+    "transaction_details": {
+        "gross_amount": "21000",
+        "order_id": "123456"
+    },
+    "customer_details": {
+        "email": "test@yopmail.com",
+        "first_name": "gerin",
+        "phone": "123"
+    },
+    "item_details": [
+        {
+            "price": "21000",
+            "quantity": "1",
+            "name": "booking gedung"
+        }
+    ],
+    "bank_transfer": {
+        "bank": "bca",
+        "va_number": "12345678901"
+    }
+}

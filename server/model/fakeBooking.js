@@ -10,11 +10,15 @@ const fakeBookingSchema = new mongoose.Schema({
         month: { type: String },
         date: [{ type: String }]
     }],
+    payment: {
+        type: Object
+    },
     information: { type: String },
     status: {
         type: String,
         default: 'Wait Confirmation'
     }
+
 })
 
 module.exports = mongoose.model('fakeBooking', fakeBookingSchema)
