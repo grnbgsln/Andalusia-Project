@@ -67,6 +67,7 @@ const deleteContent = async (req, res, next) => {
         next(err)
     }
 }
+
 const getContentbyID = async (req, res, next) => {
     try {
         const getContent = await beritaContent.findById(req.params.id)
