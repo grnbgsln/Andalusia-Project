@@ -3,6 +3,7 @@ const fakeBooking = require("../model/fakeBooking")
 const mailTransporter = require("../util/sendingEmail")
 const midtrans = require('../util/midtrans')
 
+
 const createFakeBooking = async (req, res, next) => {
     try {
         const saveBooking = await new fakeBooking(req.body).save()
