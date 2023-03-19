@@ -4,6 +4,7 @@ const axios = require("axios");
 
 
 //test 
+
 const createNewContent = async (req, res, next) => {
     try {
         let images = req.files

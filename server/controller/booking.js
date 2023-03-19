@@ -2,6 +2,8 @@ const booking = require("../model/booking");
 const fakeBooking = require("../model/fakeBooking");
 const mailTransporter = require("../util/sendingEmail");
 const midtrans = require("../util/midtrans");
+const { default: axios } = require("axios");
+const { payment } = require("../midtrans/paymentMethod");
 
 
 const createFakeBooking = async (req, res, next) => {
@@ -151,57 +153,12 @@ const updatedetailBooking = async (req, res, next) => {
 };
 const confirmationFakeBooking = async (req, res, next) => {
   try {
-    let newbodyReqMidtrans;
+    const { payment_type, bank_name } = req.body
     const findFakeTransaction = await fakeBooking.findOne({ _id: req.params.id });
-    const newId = findFakeTransaction._id.toString();
-    const quantity = findFakeTransaction;
-    let bodyReqMidtrans = {
-      transaction_details: {
-        gross_amount: 21000,
-        order_id: newId,
-      },
-      customer_details: {
-        email: findFakeTransaction.email,
-        first_name: findFakeTransaction.name,
-        phone: findFakeTransaction.phone,
-      },
-      item_details: [
-        {
-          price: 21000,
-          quantity: 1,
-          name: "booking gedung",
-          items: findFakeTransaction.items,
-        },
-      ],
-    };
 
-    switch (req.body.payment_type) {
-      case "bank_transfer":
-        newbodyReqMidtrans = {
-          payment_type: "bank_transfer",
-          ...bodyReqMidtrans,
-          bank_transfer: {
-            bank: req.body.bank_name,
-            va_number: "12345678901",
-          },
-        };
-        break;
-      case "gopay":
-        newbodyReqMidtrans = {
-          payment_type: "gopay",
-          ...bodyReqMidtrans,
-          gopay: {
-            enable_callback: true,
-            callback_url: "someapps://callback",
-          },
-        };
-        break;
-      default:
-      // code block
-    }
+    let newbodyReqMidtrans = payment(payment_type, bank_name, findFakeTransaction)
     try {
       const test = await midtrans.charge(newbodyReqMidtrans);
-      console.log(test);
       if (test) {
         try {
           const update = await fakeBooking.findOneAndUpdate(
@@ -348,10 +305,41 @@ const getDateBooking = async (req, res, next) => {
     next(err);
   }
 };
+
+const updeteStatus = async (req, res, next) => {
+  let limit = req.query.limit ? req.query.limit : 5;
+  let page = req.query.page ? req.query.page - 1 : 0;
+  try {
+    const transcation_id = req.params.id
+    const findTransaction= await fakeBooking.findAll().limit(limit).skip(page * limit)
+    if(!findTransaction){
+      res.status(200).json({
+        message : "id transcation is not available"
+      })
+    }else{
+      transaction.status(transcation_id).then((result) => {
+        console.log(result)
+      }).catch((err) => {
+        
+      });
+    }
+   
+  } catch (err) {
+
+  }
+}
 const testing = async (req, res, next) => {
   try {
-    const res = await axios.post("http://masjidandalusia.com/ajax/get_selected_building_schedule");
-    console.log(res.data.items);
+    let pass
+    const response = await axios.get('https://api.sandbox.midtrans.com/v2/641732fe5980af1c2e25d7de/status', {
+      headers: {
+        auth: {
+          username: process.env.SERVER_KEY_MIDTRANS,
+          password: pass
+        }
+      }
+    })
+    res.status(200).json(response)
   } catch (err) {
     next(err);
   }

@@ -8,6 +8,6 @@ Router.get('/getdate', getDateBooking)
 Router.post('/createBooking', createFakeBooking)
 Router.post('/updateBooking/:id', updatedetailBooking)
 Router.post("/confirmationAdmin/:id", confirmationFakeBooking)
-Router.post("/test", testMidtrans)
+Router.post("/test", testing)
 
 module.exports = Router
