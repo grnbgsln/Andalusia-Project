@@ -48,7 +48,10 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
-  connect();
-  console.log("connect to backend");
+connect().then(() => {
+  app.listen(PORT, () => {
+    console.log("connect to backend");
+  });
+}).catch((err) => {
+  console.log("error connection");
 });
