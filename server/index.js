@@ -6,7 +6,7 @@ const bodyParser = require("body-parser");
 const bookingRouter = require('./routes/booking')
 const galeriRouter = require('./routes/galeri')
 const beritaRouter = require('./routes/beritaArtikel')
-const PORT = process.env.PORT || 3000
+
 const cors = require("cors");
 
 const app = express();
@@ -48,13 +48,13 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.get('/', async (req,res) => {
+app.get('/', async (req, res) => {
   res.send('hallo')
 })
+
+
 connect().then(() => {
-  app.listen(PORT, () => {
+  app.listen(process.env.PORT || 3000, () => {
     console.log("connect to backend");
   });
-}).catch((err) => {
-  console.log("error connection");
-});
+})
