@@ -48,6 +48,9 @@ app.use((err, req, res, next) => {
   });
 });
 
+app.get('/', async (req,res) => {
+  res.send('hallo')
+})
 connect().then(() => {
   app.listen(PORT, () => {
     console.log("connect to backend");
