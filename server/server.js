@@ -52,9 +52,10 @@ app.get('/', async (req, res) => {
   res.send('hallo')
 })
 
-
+const port = process.env.PORT || 3000
+console.log(port)
 connect().then(() => {
-  app.listen(process.env.PORT || 3000, () => {
+  app.listen(port, () => {
     console.log("connect to backend");
   });
 })
